@@ -1,5 +1,6 @@
 package ru.itmo.securerestapi.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -25,10 +26,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        String passwordHash =
-                "$2y$10$K5sRSTF4XGo5QyG8nIJpve4iRS3vwYriKl6P4dXnzg9GLG1Ckvf0q";
-
+    public UserDetailsService userDetailsService(
+            @Value("${app.admin.password-hash}") String passwordHash
+    ) {
         var user = User.builder()
                 .username("admin")
                 .password(passwordHash)
@@ -52,7 +52,12 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/auth/**",
+                                "/api/**"
+                        )
+                )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
